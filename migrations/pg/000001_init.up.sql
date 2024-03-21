@@ -61,6 +61,7 @@ INSERT INTO orders (number) VALUES
 
 INSERT INTO goods_orders (good_id, order_id, good_count) VALUES
     (1, 1, 2),
+    (1, 3, 3),
     (3, 1, 1),
     (6, 1, 1),
     (2, 2, 3),

@@ -22,7 +22,6 @@ func Run(cfg *config.Config) error {
 		return err
 	}
 	defer db.Close()
-	log.Println("connection success")
 
 	migration := repository.NewMigrate(cfg)
 	err = migration.Up()
@@ -30,7 +29,6 @@ func Run(cfg *config.Config) error {
 		log.Printf("from migration")
 		return err
 	}
-	log.Println("migration success")
 
 	repos := repository.NewRepository(db.Pool)
 	services := service.NewService(repos)

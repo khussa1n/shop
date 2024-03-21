@@ -23,6 +23,7 @@ func (h *Handler) InitHandler() {
 	fmt.Println()
 	fmt.Println("=+=+=+=")
 	fmt.Println("Страница сборки заказов :", orders)
+	fmt.Println()
 
 	goodsByOrders, err := h.service.Good.GetAllByOrders(orders...)
 	if err != nil {
@@ -31,14 +32,22 @@ func (h *Handler) InitHandler() {
 	}
 
 	for key, value := range goodsByOrders {
-		fmt.Println()
 		fmt.Println("===Стеллаж", key)
 		for _, goodWithOrders := range value {
-			fmt.Println()
 			fmt.Printf("%s (id=%d)\n", goodWithOrders.Good.Name, goodWithOrders.Good.ID)
 			fmt.Printf("заказ %d, %d шт\n", goodWithOrders.OrderNumber, goodWithOrders.GoodsCount)
-			if goodWithOrders.AdditionalShelves != "{NULL}" {
-				fmt.Println("доп стеллаж:", goodWithOrders.AdditionalShelves)
+			if len(goodWithOrders.AdditionalShelves) == 0 {
+				fmt.Println()
+			} else {
+				fmt.Print("доп стеллаж:")
+				for i, shelves := range goodWithOrders.AdditionalShelves {
+					fmt.Print(" " + shelves)
+					if i < len(goodWithOrders.AdditionalShelves)-1 {
+						fmt.Print(",")
+					}
+				}
+				fmt.Println()
+				fmt.Println()
 			}
 		}
 	}

@@ -6,7 +6,7 @@ type GoodWithOrders struct {
 	Good              model.Goods
 	OrderNumber       int64
 	GoodsCount        int64
-	AdditionalShelves string
+	AdditionalShelves []string
 }
 
 type AllGoodsByOrders map[string][]GoodWithOrders
