@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  db:
+    restart: always
+    image: postgres:latest
+    environment:
+      - POSTGRES_DB=shop
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - 5438:5432
+
+  app:
+    build: ./
+    command: sh -c 'while ! nc -z db 5432; do sleep 1; done && ./shop 10,11,14,15'
+    depends_on:
+      - db
