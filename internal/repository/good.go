@@ -21,8 +21,8 @@ func (g *GoodRepoImpl) GetAllByOrders(orderNumbers ...string) (dto.AllGoodsByOrd
 		FROM goods g
 		JOIN goods_orders go ON g.id = go.good_id
 		JOIN orders o ON go.order_id = o.id
-		LEFT JOIN goods_shelves gs ON g.id = gs.good_id
-		LEFT JOIN shelves s ON gs.shelf_id = s.id
+		JOIN goods_shelves gs ON g.id = gs.good_id
+		JOIN shelves s ON gs.shelf_id = s.id
 		WHERE
 	`
 
