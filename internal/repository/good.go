@@ -46,12 +46,9 @@ func (g *GoodRepoImpl) GetAllByOrders(orderNumbers ...string) (dto.AllGoodsByOrd
 	for rows.Next() {
 		var good dto.GoodWithOrders
 		var mainShelf string
-		var additionalShelves []string
-		if err = rows.Scan(&good.Good.ID, &good.Good.Name, &good.OrderNumber, &good.GoodsCount, &mainShelf, &additionalShelves); err != nil {
+		if err = rows.Scan(&good.Good.ID, &good.Good.Name, &good.OrderNumber, &good.GoodsCount, &mainShelf, &good.AdditionalShelves); err != nil {
 			return nil, err
 		}
-
-		good.AdditionalShelves = additionalShelves
 
 		result[mainShelf] = append(result[mainShelf], good)
 	}
