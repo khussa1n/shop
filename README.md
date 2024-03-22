@@ -8,6 +8,3 @@ docker-compose up --build app
 
 ### Console log
 <img alt="Console log" src="result.png"/>
-
-### SQL Query Result
-<img alt="Select" src="select.png"/>

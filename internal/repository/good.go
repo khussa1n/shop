@@ -2,56 +2,84 @@ package repository
 
 import (
 	"context"
+	"github.com/georgysavva/scany/pgxscan"
 	"github.com/jackc/pgx/v4/pgxpool"
-	"github.com/khussa1n/shop/internal/dto"
+	"github.com/khussa1n/shop/internal/model"
+	"strconv"
 )
 
 type GoodRepoImpl struct {
 	pool *pgxpool.Pool
 }
 
-func (g *GoodRepoImpl) GetAllByOrders(orderNumbers ...string) (dto.AllGoodsByOrders, error) {
+func (g *GoodRepoImpl) GetAllGoodsByIds(ids ...int64) ([]model.Goods, error) {
+	var goods []model.Goods
 	query := `
-		SELECT  g.id, 
-				g.name, 
-				o.number, 
-				go.good_count, 
-				MAX(s.name) FILTER (WHERE gs.main_or_additional = 'главный') AS main_shelf,
-				ARRAY_AGG(s.name) FILTER (WHERE gs.main_or_additional = 'дополнительный') AS additional_shelves
-		FROM goods g
-		JOIN goods_orders go ON g.id = go.good_id
-		JOIN orders o ON go.order_id = o.id
-		JOIN goods_shelves gs ON g.id = gs.good_id
-		JOIN shelves s ON gs.shelf_id = s.id
-		WHERE
-	`
+		select * from goods g
+		where`
 
-	for i := 0; i < len(orderNumbers); i++ {
+	for i := 0; i < len(ids); i++ {
 		if i == 0 {
-			query += " o.number = '" + orderNumbers[i] + "'"
+			query += " g.id = " + strconv.FormatInt(ids[i], 10)
 		} else {
-			query += " OR o.number = '" + orderNumbers[i] + "'"
+			query += " OR g.id = " + strconv.FormatInt(ids[i], 10)
 		}
 	}
 
-	query += " GROUP BY g.id, g.name, o.number, go.good_count;"
-
-	rows, err := g.pool.Query(context.Background(), query)
+	err := pgxscan.Select(context.Background(), g.pool, &goods, query)
 	if err != nil {
 		return nil, err
 	}
-	defer rows.Close()
 
-	result := make(dto.AllGoodsByOrders)
-	for rows.Next() {
-		var good dto.GoodWithOrders
-		var mainShelf string
-		if err = rows.Scan(&good.Good.ID, &good.Good.Name, &good.OrderNumber,
-			&good.GoodsCount, &mainShelf, &good.AdditionalShelves); err != nil {
-			return nil, err
+	return goods, nil
+}
+
+func (g *GoodRepoImpl) GetOrdersByNumbers(numbers ...string) ([]model.OrdersByGoods, error) {
+	var result []model.OrdersByGoods
+	query := `
+		select o.number, go.good_id, go.good_count from orders o
+		join goods_orders go on o.id = go.order_id
+		where`
+
+	for i := 0; i < len(numbers); i++ {
+		if i == 0 {
+			query += " o.number = " + numbers[i]
+		} else {
+			query += " OR o.number = " + numbers[i]
 		}
+	}
 
-		result[mainShelf] = append(result[mainShelf], good)
+	err := pgxscan.Select(context.Background(), g.pool, &result, query)
+	if err != nil {
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (g *GoodRepoImpl) GetShelvesByGoods(ids ...int64) ([]model.ShelvesByGoods, error) {
+	var result []model.ShelvesByGoods
+	query := `
+		select gs.good_id,
+			   MAX(s.name) FILTER (WHERE gs.main_or_additional = 'главный') AS main_shelf,
+			   ARRAY_AGG(s.name) FILTER (WHERE gs.main_or_additional = 'дополнительный') AS additional_shelves
+		FROM goods_shelves gs
+		join shelves s on gs.shelf_id = s.id
+		WHERE`
+
+	for i := 0; i < len(ids); i++ {
+		if i == 0 {
+			query += " gs.good_id = " + strconv.FormatInt(ids[i], 10)
+		} else {
+			query += " OR gs.good_id = " + strconv.FormatInt(ids[i], 10)
+		}
+	}
+
+	query += " GROUP BY gs.good_id;"
+
+	err := pgxscan.Select(context.Background(), g.pool, &result, query)
+	if err != nil {
+		return nil, err
 	}
 
 	return result, nil
