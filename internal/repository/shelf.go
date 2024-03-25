@@ -9,15 +9,15 @@ import (
 	"strings"
 )
 
-type GoodRepoImpl struct {
+type ShelfRepoImpl struct {
 	pool *pgxpool.Pool
 }
 
-func (g *GoodRepoImpl) GetAllByIds(ids ...int64) ([]model.Goods, error) {
-	var goods []model.Goods
+func (s *ShelfRepoImpl) GetAllByIds(ids ...int64) ([]model.Shelves, error) {
+	var shelves []model.Shelves
 	query := `
-		select * from goods g
-		where g.id in (`
+		select * from shelves
+		where id in (`
 
 	placeholders := make([]string, len(ids))
 	for i, id := range ids {
@@ -27,14 +27,14 @@ func (g *GoodRepoImpl) GetAllByIds(ids ...int64) ([]model.Goods, error) {
 	query += strings.Join(placeholders, ", ")
 	query += ")"
 
-	err := pgxscan.Select(context.Background(), g.pool, &goods, query)
+	err := pgxscan.Select(context.Background(), s.pool, &shelves, query)
 	if err != nil {
 		return nil, err
 	}
 
-	return goods, nil
+	return shelves, nil
 }
 
-func NewGood(pool *pgxpool.Pool) *GoodRepoImpl {
-	return &GoodRepoImpl{pool: pool}
+func NewShelf(pool *pgxpool.Pool) *ShelfRepoImpl {
+	return &ShelfRepoImpl{pool: pool}
 }
